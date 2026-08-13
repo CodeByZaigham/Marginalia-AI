@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Marginalia — notebooks for your sources</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<main id="view-home" class="view">
+  <header class="home-header">
+    <div class="home-header__mark">
+      <span class="wordmark">Marginalia</span>
+      <span class="wordmark-tick" aria-hidden="true"></span>
+    </div>
+    <p class="home-header__sub">A desk for reading — upload your sources, and ask questions that only they can answer.</p>
+  </header>
+
+  <section class="notebook-grid" id="notebook-grid" aria-live="polite">
+    <button class="notebook-card notebook-card--new" id="btn-new-notebook">
+      <span class="notebook-card--new__plus" aria-hidden="true">+</span>
+      <span>New notebook</span>
+    </button>
+  </section>
+
+  <p class="empty-hint" id="home-empty-hint" hidden>No notebooks yet — start your first one above.</p>
+</main>
+
+<main id="view-notebook" class="view" hidden>
+  <header class="topbar">
+    <button class="btn-icon" id="btn-back-home" title="All notebooks" aria-label="Back to all notebooks">←</button>
+    <div class="topbar__title-wrap">
+      <h1 class="topbar__title" id="notebook-title" tabindex="0" title="Click to rename">Untitled notebook</h1>
+      <input class="topbar__title-input" id="notebook-title-input" hidden />
+    </div>
+    <div class="topbar__spacer"></div>
+    <button class="btn-icon" id="btn-delete-notebook" title="Delete this notebook" aria-label="Delete notebook">⌫</button>
+    <nav class="tab-switch" id="mobile-tabs">
+      <button class="tab-switch__btn is-active" data-pane="sources">Sources</button>
+      <button class="tab-switch__btn" data-pane="chat">Chat</button>
+      <button class="tab-switch__btn" data-pane="studio">Studio</button>
+    </nav>
+  </header>
+
+  <div class="workspace">
+
+    <section class="pane pane--sources" data-pane="sources">
+      <div class="pane__header">
+        <span class="pane__label">Sources</span>
+        <button class="btn-chip" id="btn-add-source">+ Add</button>
+      </div>
+      <input type="file" id="file-input" multiple hidden
+             accept=".pdf,.txt,.csv,.ppt,.pptx,.docx" />
+
+      <div class="dropzone" id="dropzone">
+        <p class="dropzone__text">Drag files here, or use <strong>+ Add</strong></p>
+        <p class="dropzone__hint">PDF · TXT · CSV · PPT/PPTX · DOCX</p>
+      </div>
+
+      <ul class="source-list" id="source-list"></ul>
+      <p class="empty-hint empty-hint--pane" id="sources-empty-hint">No sources yet. Add a file to start.</p>
+    </section>
+
+    <section class="pane pane--chat" data-pane="chat">
+      <div class="chat-scroll" id="chat-scroll">
+
+        <div class="notebook-guide" id="notebook-guide" hidden>
+          <span class="pane__label">Notebook guide</span>
+          <p class="notebook-guide__overview" id="notebook-overview"></p>
+          <div class="suggested-questions" id="suggested-questions"></div>
+        </div>
+
+        <div class="chat-empty" id="chat-empty">
+          <p>Add at least one source, then ask anything about it.</p>
+          <p class="chat-empty__sub">Answers are grounded only in what you've uploaded, with footnote citations back to the exact source.</p>
+        </div>
+
+        <div class="chat-log" id="chat-log"></div>
+
+        <div class="chat-loading" id="chat-loading" hidden>
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        </div>
+      </div>
+
+      <form class="composer" id="composer">
+        <textarea class="composer__input" id="composer-input" rows="1"
+                  placeholder="Ask a question about your sources…"></textarea>
+        <button class="composer__send" id="composer-send" type="submit" aria-label="Send">↑</button>
+      </form>
+    </section>
+
+    <section class="pane pane--studio" data-pane="studio">
+      <div class="pane__header">
+        <span class="pane__label">Notes</span>
+        <button class="btn-chip" id="btn-add-note">+ New</button>
+      </div>
+      <ul class="note-list" id="note-list"></ul>
+      <p class="empty-hint empty-hint--pane" id="notes-empty-hint">Save an answer, or write your own note.</p>
+    </section>
+
+  </div>
+</main>
+
+<div class="modal-backdrop" id="modal-backdrop" hidden>
+
+  <div class="modal" id="modal-new-notebook" hidden>
+    <h2 class="modal__title">Name your notebook</h2>
+    <input class="modal__input" id="new-notebook-name" placeholder="e.g. Computer Networking, 7th ed." maxlength="120" />
+    <div class="modal__actions">
+      <button class="btn-ghost" data-close-modal>Cancel</button>
+      <button class="btn-solid" id="confirm-new-notebook">Create</button>
+    </div>
+  </div>
+
+  <div class="modal" id="modal-new-note" hidden>
+    <h2 class="modal__title">New note</h2>
+    <input class="modal__input" id="new-note-title" placeholder="Title" maxlength="120" />
+    <textarea class="modal__textarea" id="new-note-content" placeholder="Write your note…" rows="6"></textarea>
+    <div class="modal__actions">
+      <button class="btn-ghost" data-close-modal>Cancel</button>
+      <button class="btn-solid" id="confirm-new-note">Save note</button>
+    </div>
+  </div>
+
+  <div class="modal modal--confirm" id="modal-confirm" hidden>
+    <h2 class="modal__title" id="confirm-title">Are you sure?</h2>
+    <p class="modal__body" id="confirm-body"></p>
+    <div class="modal__actions">
+      <button class="btn-ghost" data-close-modal>Cancel</button>
+      <button class="btn-danger" id="confirm-danger-action">Delete</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="footnote-popover" id="footnote-popover" hidden>
+  <span class="footnote-popover__marker" id="footnote-popover-marker"></span>
+  <span class="footnote-popover__filename" id="footnote-popover-filename"></span>
+  <p class="footnote-popover__snippet" id="footnote-popover-snippet"></p>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<div class="global-loader" id="global-loader" hidden aria-live="polite" aria-busy="true">
+  <div class="global-loader__card">
+    <span class="global-loader__spinner" aria-hidden="true"></span>
+    <p class="global-loader__text" id="global-loader-text">Working…</p>
+    <p class="global-loader__hint" id="global-loader-hint"></p>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
